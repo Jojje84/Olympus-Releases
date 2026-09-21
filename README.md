@@ -2,7 +2,7 @@
 
 **Official public downloads and release information for UniCore.**
 
-[Live demo](https://jojje84.github.io/UniCore/) · [Security](.github/SECURITY.md) · [Installation](docs/INSTALL.md) · [Verify downloads](docs/VERIFY.md)
+[Live demo](https://jojje84.github.io/UniCore/) · [Security](.github/SECURITY.md) · [Installation](docs/INSTALL.md) · [Verify downloads](docs/VERIFY.md) · [Binary license](docs/LICENSE.md)
 
 UniCore is a lightweight, local-first UniFi monitoring dashboard written in Go.
 
@@ -18,6 +18,7 @@ When releases begin, this repository will provide:
 
 - Linux binaries for amd64, arm64 and armv7
 - SHA-256 checksums
+- Sigstore verification bundles for release payloads
 - CycloneDX SBOM files
 - versioned release notes
 - Docker/container distribution information
@@ -33,15 +34,20 @@ unicore_<version>_linux_arm64.tar.gz
 unicore_<version>_linux_armv7.tar.gz
 SHA256SUMS
 unicore_<version>_sbom.cdx.json
+<artifact>.sigstore.json
 ```
 
-Only files attached to releases in this repository should be treated as official public UniCore downloads.
+Only files attached to releases in this repository should be treated as official public UniCore downloads. Official release payloads are designed to be verifiable with both SHA-256 checksums and Sigstore bundles.
 
 ## Release channel
 
 `release-channel.json` is the stable machine-readable update feed.
 
 Before the first public release its `latest` value is `null`. Once releases begin, the private UniCore build pipeline will update this file automatically after a release has passed verification and been published successfully.
+
+## License
+
+Official compiled UniCore releases are distributed under the [UniCore Binary License](docs/LICENSE.md). Downloading, installing, or using an official release is subject to those terms.
 
 ## Security
 
