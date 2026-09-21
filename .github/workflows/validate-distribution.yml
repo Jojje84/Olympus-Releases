@@ -81,6 +81,7 @@ jobs:
           assert payload.get("channel") == "stable"
           assert payload.get("status") in {"pre-release", "stable"}
           assert payload.get("releases_url") == "https://github.com/Jojje84/UniCore-Releases/releases"
+          assert payload.get("license_url") == "https://github.com/Jojje84/UniCore-Releases/blob/main/docs/LICENSE.md"
 
           latest = payload.get("latest")
           if latest is None:
@@ -93,6 +94,13 @@ jobs:
                   assert isinstance(value, str) and value.strip(), f"latest.{key} is required"
               assert latest["tag"] == f"v{latest['version']}"
               assert latest["url"].startswith("https://github.com/Jojje84/UniCore-Releases/releases/")
+              assert latest.get("license") == payload["license_url"]
+              signing = latest.get("signing")
+              assert isinstance(signing, dict)
+              assert signing.get("format") == "sigstore-bundle"
+              assert signing.get("bundle_suffix") == ".sigstore.json"
+              assert signing.get("oidc_issuer") == "https://token.actions.githubusercontent.com"
+              assert isinstance(signing.get("workflow_identity"), str) and signing["workflow_identity"].endswith(f"@refs/tags/{latest['tag']}")
 
           print("release-channel.json is valid")
           PY
@@ -104,6 +112,7 @@ jobs:
           test -s README.md
           test -s docs/INSTALL.md
           test -s docs/VERIFY.md
+          test -s docs/LICENSE.md
           test -s docs/REPOSITORY_POLICY.md
           test -s .github/SECURITY.md
           test -s .github/CODEOWNERS
