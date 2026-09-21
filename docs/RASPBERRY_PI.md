@@ -140,6 +140,13 @@ Keep the existing `/etc/unicore.env` and `/var/lib/unicore` unless the release n
 
 ## Automated ARM validation
 
-UniCore CI executes the real Linux ARM64 and ARMv7 binaries under QEMU before changes can pass the required `verify` gate. The emulation smoke test checks startup, health, authentication, protected API access, SQLite creation and restart behavior.
+UniCore validates Raspberry Pi release targets automatically before changes can pass the required `verify` gate:
 
-This automated test does **not** replace the final physical Raspberry Pi validation. Before stable v1.0.0, UniCore still requires a real Raspberry Pi OS systemd installation and the documented 24-hour soak/resource-growth check.
+- ARM64 is executed natively on a GitHub-hosted ARM64 Linux runner.
+- ARM64 is also executed under QEMU.
+- ARMv7 is executed under QEMU.
+- The runtime tests verify startup, `/health`, authentication, protected API access, SQLite database creation and restart behavior.
+
+For v1.0, these automated checks are the required ARM runtime validation. A physical Raspberry Pi is **not** required as a release blocker.
+
+This means UniCore can state that the ARM64 and ARMv7 Linux builds are automatically runtime-tested, but it does not claim that a particular Raspberry Pi model or Raspberry Pi OS image was physically tested. Physical-device soak and thermal/resource measurements can be added later as extra field validation.
