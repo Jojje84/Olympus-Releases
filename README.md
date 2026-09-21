@@ -2,7 +2,7 @@
 
 **Official public downloads and release information for UniCore.**
 
-[Live demo](https://jojje84.github.io/UniCore/) · [Security](.github/SECURITY.md) · [Installation](docs/INSTALL.md) · [Verify downloads](docs/VERIFY.md) · [Binary license](docs/LICENSE.md)
+[Live demo](https://jojje84.github.io/UniCore/) · [Raspberry Pi](docs/RASPBERRY_PI.md) · [Security](.github/SECURITY.md) · [Installation](docs/INSTALL.md) · [Verify downloads](docs/VERIFY.md) · [Binary license](docs/LICENSE.md)
 
 UniCore is a lightweight, local-first UniFi monitoring dashboard written in Go.
 
@@ -16,7 +16,7 @@ The first production release will be published here after the current release ca
 
 When releases begin, this repository will provide:
 
-- Linux binaries for amd64, arm64 and armv7
+- Separate Linux binaries for amd64, arm64 and armv7
 - SHA-256 checksums
 - Sigstore verification bundles for release payloads
 - CycloneDX SBOM files
