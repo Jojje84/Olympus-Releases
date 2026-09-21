@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "product": "UniCore",
+  "channel": "stable",
+  "status": "pre-release",
+  "latest": null,
+  "releases_url": "https://github.com/Jojje84/UniCore-Releases/releases"
+}
