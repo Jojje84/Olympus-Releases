@@ -1,0 +1,109 @@
+name: Validate distribution repository
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out release metadata
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Validate repository layout
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          allowed_root=(
+            ".github"
+            "README.md"
+            "docs"
+            "release-channel.json"
+          )
+
+          mapfile -t root_entries < <(find . -mindepth 1 -maxdepth 1 -printf '%f\n' | sort)
+          for entry in "${root_entries[@]}"; do
+            [[ "$entry" == ".git" ]] && continue
+
+            allowed=false
+            for expected in "${allowed_root[@]}"; do
+              if [[ "$entry" == "$expected" ]]; then
+                allowed=true
+                break
+              fi
+            done
+
+            if [[ "$allowed" != true ]]; then
+              echo "Unexpected root entry: $entry"
+              exit 1
+            fi
+          done
+
+      - name: Reject source code and committed release artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if find . -path './.git' -prune -o -type f \(             -name '*.go' -o             -name '*.js' -o             -name '*.ts' -o             -name '*.tsx' -o             -name '*.jsx' -o             -name '*.py' -o             -name '*.rs' -o             -name '*.c' -o             -name '*.cc' -o             -name '*.cpp' -o             -name '*.h' -o             -name '*.java' -o             -name '*.class' -o             -name '*.exe' -o             -name '*.dll' -o             -name '*.so' -o             -name '*.dylib' -o             -name '*.tar' -o             -name '*.tar.gz' -o             -name '*.tgz' -o             -name '*.zip' -o             -name '*.deb' -o             -name '*.rpm'           \) -print | grep -q .; then
+            echo "Source code or release artifacts must not be committed to this repository."
+            exit 1
+          fi
+
+          for forbidden in Dockerfile docker-compose.yml go.mod go.sum package.json Cargo.toml Makefile; do
+            if find . -path './.git' -prune -o -name "$forbidden" -print | grep -q .; then
+              echo "Forbidden development file found: $forbidden"
+              exit 1
+            fi
+          done
+
+      - name: Validate release channel
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("release-channel.json")
+          payload = json.loads(path.read_text(encoding="utf-8"))
+
+          assert payload.get("schema_version") == 1
+          assert payload.get("product") == "UniCore"
+          assert payload.get("channel") == "stable"
+          assert payload.get("status") in {"pre-release", "stable"}
+          assert payload.get("releases_url") == "https://github.com/Jojje84/UniCore-Releases/releases"
+
+          latest = payload.get("latest")
+          if latest is None:
+              assert payload["status"] == "pre-release"
+          else:
+              assert payload["status"] == "stable"
+              assert isinstance(latest, dict)
+              for key in ("version", "tag", "url", "published_at"):
+                  value = latest.get(key)
+                  assert isinstance(value, str) and value.strip(), f"latest.{key} is required"
+              assert latest["tag"] == f"v{latest['version']}"
+              assert latest["url"].startswith("https://github.com/Jojje84/UniCore-Releases/releases/")
+
+          print("release-channel.json is valid")
+          PY
+
+      - name: Verify required public documentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s README.md
+          test -s docs/INSTALL.md
+          test -s docs/VERIFY.md
+          test -s docs/REPOSITORY_POLICY.md
+          test -s .github/SECURITY.md
+          test -s .github/CODEOWNERS
