@@ -28,7 +28,7 @@ Please include privately, when possible:
 
 Only release files published through `Jojje84/UniCore-Releases` and container coordinates explicitly referenced by this repository should be treated as official UniCore distributions.
 
-Verify downloaded artifacts using the published `SHA256SUMS` before installation.
+Verify downloaded artifacts using both the published `SHA256SUMS` and the matching Sigstore `.sigstore.json` bundle before installation. See `docs/VERIFY.md` for the expected signing identity and verification commands.
 
 ## Internet-facing deployments
 
