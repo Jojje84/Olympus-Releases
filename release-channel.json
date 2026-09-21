@@ -4,5 +4,6 @@
   "channel": "stable",
   "status": "pre-release",
   "latest": null,
-  "releases_url": "https://github.com/Jojje84/UniCore-Releases/releases"
+  "releases_url": "https://github.com/Jojje84/UniCore-Releases/releases",
+  "license_url": "https://github.com/Jojje84/UniCore-Releases/blob/main/docs/LICENSE.md"
 }
