@@ -18,7 +18,7 @@ Except where applicable law expressly permits otherwise, you may not:
 - remove or alter copyright, licensing, security, provenance, or attribution information;
 - represent an unofficial build, mirror, or modified copy as an official UniCore release.
 
-Official redistribution channels may be added or authorized in writing by the UniCore project owner. Olympus Store and the `Jojje84/UniCore-Releases` repository are intended official distribution channels.
+Official redistribution channels may be added or authorized in writing by the UniCore project owner. Olympus Store and the `Jojje84/Olympus-Releases` repository are intended official distribution channels.
 
 ## 3. Updates and verification
 

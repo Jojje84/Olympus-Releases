@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "hub": "Olympus",
+  "releases_url": "https://github.com/Jojje84/Olympus-Releases/releases",
+  "products": {
+    "unicore": {
+      "display_name": "UniCore",
+      "stable_channel": "channels/unicore/stable.json",
+      "release_tag_prefix": "unicore-"
+    },
+    "forgecore": {
+      "display_name": "ForgeCore",
+      "stable_channel": "channels/forgecore/stable.json",
+      "release_tag_prefix": "forgecore-"
+    }
+  }
+}

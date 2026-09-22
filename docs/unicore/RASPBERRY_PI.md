@@ -23,7 +23,7 @@ For a modern Raspberry Pi running 64-bit Raspberry Pi OS, choose **arm64**.
 
 ## 2. Download and verify the release
 
-Download the matching archive plus `SHA256SUMS` and its Sigstore verification bundle from the official UniCore Releases repository.
+Download the matching archive plus `SHA256SUMS` and its Sigstore verification bundle from the official Olympus Releases hub.
 
 Verify the checksum before installation:
 

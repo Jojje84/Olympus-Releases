@@ -36,6 +36,6 @@ Never put real controller credentials or API keys into public issues, screenshot
 
 ## Updates
 
-UniCore will use the machine-readable `release-channel.json` feed in this repository for stable update discovery.
+UniCore will use the machine-readable `channels/unicore/stable.json` feed in this repository for stable update discovery.
 
 The update feed remains in `pre-release` state until the first production release is published.

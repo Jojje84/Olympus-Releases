@@ -1,4 +1,4 @@
-name: Validate distribution repository
+name: Validate Olympus release hub
 
 on:
   pull_request:
@@ -26,14 +26,14 @@ jobs:
           allowed_root=(
             ".github"
             "README.md"
+            "channels"
             "docs"
-            "release-channel.json"
+            "release-index.json"
           )
 
           mapfile -t root_entries < <(find . -mindepth 1 -maxdepth 1 -printf '%f\n' | sort)
           for entry in "${root_entries[@]}"; do
             [[ "$entry" == ".git" ]] && continue
-
             allowed=false
             for expected in "${allowed_root[@]}"; do
               if [[ "$entry" == "$expected" ]]; then
@@ -41,7 +41,6 @@ jobs:
                 break
               fi
             done
-
             if [[ "$allowed" != true ]]; then
               echo "Unexpected root entry: $entry"
               exit 1
@@ -53,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          if find . -path './.git' -prune -o -type f \(             -name '*.go' -o             -name '*.js' -o             -name '*.ts' -o             -name '*.tsx' -o             -name '*.jsx' -o             -name '*.py' -o             -name '*.rs' -o             -name '*.c' -o             -name '*.cc' -o             -name '*.cpp' -o             -name '*.h' -o             -name '*.java' -o             -name '*.class' -o             -name '*.exe' -o             -name '*.dll' -o             -name '*.so' -o             -name '*.dylib' -o             -name '*.tar' -o             -name '*.tar.gz' -o             -name '*.tgz' -o             -name '*.zip' -o             -name '*.deb' -o             -name '*.rpm'           \) -print | grep -q .; then
+          if find . -path './.git' -prune -o -type f \(             -name '*.go' -o -name '*.js' -o -name '*.ts' -o -name '*.tsx' -o             -name '*.jsx' -o -name '*.py' -o -name '*.rs' -o -name '*.c' -o             -name '*.cc' -o -name '*.cpp' -o -name '*.h' -o -name '*.java' -o             -name '*.class' -o -name '*.exe' -o -name '*.dll' -o -name '*.so' -o             -name '*.dylib' -o -name '*.tar' -o -name '*.tar.gz' -o -name '*.tgz' -o             -name '*.zip' -o -name '*.deb' -o -name '*.rpm'           \) -print | grep -q .; then
             echo "Source code or release artifacts must not be committed to this repository."
             exit 1
           fi
@@ -65,7 +64,7 @@ jobs:
             fi
           done
 
-      - name: Validate release channel
+      - name: Validate product index and release channels
         shell: bash
         run: |
           set -euo pipefail
@@ -73,36 +72,69 @@ jobs:
           import json
           from pathlib import Path
 
-          path = Path("release-channel.json")
-          payload = json.loads(path.read_text(encoding="utf-8"))
+          HUB = "https://github.com/Jojje84/Olympus-Releases"
+          index_path = Path("release-index.json")
+          index = json.loads(index_path.read_text(encoding="utf-8"))
 
-          assert payload.get("schema_version") == 1
-          assert payload.get("product") == "UniCore"
-          assert payload.get("channel") == "stable"
-          assert payload.get("status") in {"pre-release", "stable"}
-          assert payload.get("releases_url") == "https://github.com/Jojje84/UniCore-Releases/releases"
-          assert payload.get("license_url") == "https://github.com/Jojje84/UniCore-Releases/blob/main/docs/LICENSE.md"
+          assert index.get("schema_version") == 1
+          assert index.get("hub") == "Olympus"
+          assert index.get("releases_url") == f"{HUB}/releases"
 
-          latest = payload.get("latest")
-          if latest is None:
-              assert payload["status"] == "pre-release"
-          else:
+          products = index.get("products")
+          assert isinstance(products, dict) and products
+
+          expected = {"unicore", "forgecore"}
+          assert expected.issubset(products), "UniCore and ForgeCore must be indexed"
+
+          for product_id, meta in products.items():
+              display_name = meta.get("display_name")
+              channel_path = meta.get("stable_channel")
+              prefix = meta.get("release_tag_prefix")
+
+              assert isinstance(display_name, str) and display_name.strip()
+              assert isinstance(channel_path, str) and channel_path.startswith(f"channels/{product_id}/")
+              assert isinstance(prefix, str) and prefix == f"{product_id}-"
+
+              path = Path(channel_path)
+              assert path.is_file(), f"Missing channel file: {path}"
+              payload = json.loads(path.read_text(encoding="utf-8"))
+
+              assert payload.get("schema_version") == 1
+              assert payload.get("product") == display_name
+              assert payload.get("product_id") == product_id
+              assert payload.get("channel") == "stable"
+              assert payload.get("status") in {"pre-release", "stable"}
+              assert payload.get("releases_url") == f"{HUB}/releases"
+              assert payload.get("release_tag_prefix") == prefix
+
+              latest = payload.get("latest")
+              if latest is None:
+                  assert payload["status"] == "pre-release"
+                  continue
+
               assert payload["status"] == "stable"
               assert isinstance(latest, dict)
-              for key in ("version", "tag", "url", "published_at"):
+              for key in ("version", "tag", "release_tag", "url", "published_at", "source_revision"):
                   value = latest.get(key)
-                  assert isinstance(value, str) and value.strip(), f"latest.{key} is required"
+                  assert isinstance(value, str) and value.strip(), f"{product_id}: latest.{key} is required"
+
               assert latest["tag"] == f"v{latest['version']}"
-              assert latest["url"].startswith("https://github.com/Jojje84/UniCore-Releases/releases/")
-              assert latest.get("license") == payload["license_url"]
+              assert latest["release_tag"] == f"{prefix}{latest['tag']}"
+              assert latest["url"] == f"{HUB}/releases/tag/{latest['release_tag']}"
+
               signing = latest.get("signing")
               assert isinstance(signing, dict)
               assert signing.get("format") == "sigstore-bundle"
               assert signing.get("bundle_suffix") == ".sigstore.json"
               assert signing.get("oidc_issuer") == "https://token.actions.githubusercontent.com"
-              assert isinstance(signing.get("workflow_identity"), str) and signing["workflow_identity"].endswith(f"@refs/tags/{latest['tag']}")
+              identity = signing.get("workflow_identity")
+              assert isinstance(identity, str) and identity.endswith(f"@refs/tags/{latest['tag']}")
 
-          print("release-channel.json is valid")
+              license_url = payload.get("license_url")
+              if license_url is not None:
+                  assert latest.get("license") == license_url
+
+          print("Olympus release index and product channels are valid")
           PY
 
       - name: Verify required public documentation
@@ -110,9 +142,14 @@ jobs:
         run: |
           set -euo pipefail
           test -s README.md
-          test -s docs/INSTALL.md
-          test -s docs/VERIFY.md
-          test -s docs/LICENSE.md
+          test -s release-index.json
+          test -s channels/unicore/stable.json
+          test -s channels/forgecore/stable.json
           test -s docs/REPOSITORY_POLICY.md
+          test -s docs/unicore/INSTALL.md
+          test -s docs/unicore/VERIFY.md
+          test -s docs/unicore/LICENSE.md
+          test -s docs/unicore/RASPBERRY_PI.md
+          test -s docs/forgecore/README.md
           test -s .github/SECURITY.md
           test -s .github/CODEOWNERS
