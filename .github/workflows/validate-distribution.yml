@@ -1,4 +1,4 @@
-name: Validate distribution repository
+name: Validate Olympus release hub
 
 on:
   pull_request:
@@ -26,8 +26,11 @@ jobs:
           allowed_root=(
             ".github"
             "README.md"
+            "channels"
             "docs"
+            "products"
             "release-channel.json"
+            "release-index.json"
           )
 
           mapfile -t root_entries < <(find . -mindepth 1 -maxdepth 1 -printf '%f\n' | sort)
@@ -48,13 +51,13 @@ jobs:
             fi
           done
 
-      - name: Reject source code and committed release artifacts
+      - name: Reject source code and committed release archives
         shell: bash
         run: |
           set -euo pipefail
 
-          if find . -path './.git' -prune -o -type f \(             -name '*.go' -o             -name '*.js' -o             -name '*.ts' -o             -name '*.tsx' -o             -name '*.jsx' -o             -name '*.py' -o             -name '*.rs' -o             -name '*.c' -o             -name '*.cc' -o             -name '*.cpp' -o             -name '*.h' -o             -name '*.java' -o             -name '*.class' -o             -name '*.exe' -o             -name '*.dll' -o             -name '*.so' -o             -name '*.dylib' -o             -name '*.tar' -o             -name '*.tar.gz' -o             -name '*.tgz' -o             -name '*.zip' -o             -name '*.deb' -o             -name '*.rpm'           \) -print | grep -q .; then
-            echo "Source code or release artifacts must not be committed to this repository."
+          if find . -path './.git' -prune -o -type f \(             -name '*.go' -o -name '*.js' -o -name '*.ts' -o -name '*.tsx' -o             -name '*.jsx' -o -name '*.py' -o -name '*.rs' -o -name '*.c' -o             -name '*.cc' -o -name '*.cpp' -o -name '*.h' -o -name '*.java' -o             -name '*.class' -o -name '*.exe' -o -name '*.dll' -o -name '*.so' -o             -name '*.dylib' -o -name '*.tar' -o -name '*.tar.gz' -o -name '*.tgz' -o             -name '*.zip' -o -name '*.deb' -o -name '*.rpm'           \) -print | grep -q .; then
+            echo "Source code or release archives must not be committed to this repository."
             exit 1
           fi
 
@@ -65,7 +68,7 @@ jobs:
             fi
           done
 
-      - name: Validate release channel
+      - name: Validate release index and product channels
         shell: bash
         run: |
           set -euo pipefail
@@ -73,43 +76,59 @@ jobs:
           import json
           from pathlib import Path
 
-          path = Path("release-channel.json")
-          payload = json.loads(path.read_text(encoding="utf-8"))
+          index = json.loads(Path("release-index.json").read_text(encoding="utf-8"))
+          assert index.get("schema_version") == 1
+          assert index.get("hub") == "Olympus-Releases"
 
-          assert payload.get("schema_version") == 1
-          assert payload.get("product") == "UniCore"
-          assert payload.get("channel") == "stable"
-          assert payload.get("status") in {"pre-release", "stable"}
-          assert payload.get("releases_url") == "https://github.com/Jojje84/UniCore-Releases/releases"
-          assert payload.get("license_url") == "https://github.com/Jojje84/UniCore-Releases/blob/main/docs/LICENSE.md"
+          expected = {
+              "unicore": ("UniCore", "channels/unicore/stable.json", "unicore-"),
+              "forgecore": ("ForgeCore", "channels/forgecore/stable.json", "forgecore-"),
+          }
 
-          latest = payload.get("latest")
-          if latest is None:
-              assert payload["status"] == "pre-release"
-          else:
-              assert payload["status"] == "stable"
-              assert isinstance(latest, dict)
-              for key in ("version", "tag", "url", "published_at"):
-                  value = latest.get(key)
-                  assert isinstance(value, str) and value.strip(), f"latest.{key} is required"
-              assert latest["tag"] == f"v{latest['version']}"
-              assert latest["url"].startswith("https://github.com/Jojje84/UniCore-Releases/releases/")
-              assert latest.get("license") == payload["license_url"]
-              signing = latest.get("signing")
-              assert isinstance(signing, dict)
-              assert signing.get("format") == "sigstore-bundle"
-              assert signing.get("bundle_suffix") == ".sigstore.json"
-              assert signing.get("oidc_issuer") == "https://token.actions.githubusercontent.com"
-              assert isinstance(signing.get("workflow_identity"), str) and signing["workflow_identity"].endswith(f"@refs/tags/{latest['tag']}")
+          products = index.get("products")
+          assert isinstance(products, dict)
 
-          print("release-channel.json is valid")
+          for key, (name, channel_path, prefix) in expected.items():
+              product = products.get(key)
+              assert isinstance(product, dict)
+              assert product.get("name") == name
+              assert product.get("channel") == channel_path
+              assert product.get("releases_prefix") == prefix
+
+              path = Path(channel_path)
+              payload = json.loads(path.read_text(encoding="utf-8"))
+              assert payload.get("schema_version") == 1
+              assert payload.get("product") == name
+              assert payload.get("channel") == "stable"
+              assert payload.get("status") in {"pre-release", "stable"}
+              assert payload.get("releases_url") == "https://github.com/Jojje84/Olympus-Releases/releases"
+
+              latest = payload.get("latest")
+              if latest is None:
+                  assert payload["status"] == "pre-release"
+              else:
+                  assert payload["status"] == "stable"
+                  assert isinstance(latest, dict)
+                  for required in ("version", "tag", "url", "published_at", "source_revision"):
+                      value = latest.get(required)
+                      assert isinstance(value, str) and value.strip(), f"{channel_path}: latest.{required} is required"
+                  assert latest["tag"].startswith(prefix)
+                  assert latest["url"].startswith("https://github.com/Jojje84/Olympus-Releases/releases/")
+
+          legacy = json.loads(Path("release-channel.json").read_text(encoding="utf-8"))
+          unicore = json.loads(Path("channels/unicore/stable.json").read_text(encoding="utf-8"))
+          assert legacy == unicore, "Legacy UniCore release-channel.json must mirror channels/unicore/stable.json"
+
+          print("Olympus release hub metadata is valid")
           PY
 
-      - name: Verify required public documentation
+      - name: Verify required documentation
         shell: bash
         run: |
           set -euo pipefail
           test -s README.md
+          test -s products/unicore/README.md
+          test -s products/forgecore/README.md
           test -s docs/INSTALL.md
           test -s docs/VERIFY.md
           test -s docs/LICENSE.md
