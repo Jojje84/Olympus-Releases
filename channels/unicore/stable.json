@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "product": "UniCore",
+  "channel": "stable",
+  "status": "pre-release",
+  "latest": null,
+  "releases_url": "https://github.com/Jojje84/Olympus-Releases/releases",
+  "license_url": "https://github.com/Jojje84/Olympus-Releases/blob/main/docs/LICENSE.md"
+}
