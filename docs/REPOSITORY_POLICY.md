@@ -1,40 +1,59 @@
 # Repository Policy
 
-`UniCore-Releases` is a public **distribution repository**, not a source-code repository.
+`Olympus-Releases` is a public **multi-product distribution repository**, not a
+source-code repository.
 
 ## Allowed content
 
 The Git tree should contain only:
 
-- release-channel metadata
-- public installation and verification documentation
+- `release-index.json`
+- product channel metadata under `channels/`
+- public installation, license and verification documentation under `docs/`
 - security and ownership metadata
-- GitHub Actions used to validate the distribution repository
+- GitHub Actions used to validate the release hub
 
 ## Not allowed in Git
 
 Do not commit:
 
-- UniCore application source code
+- application source code
 - compiled binaries
 - Docker images or image layers
 - release archives
 - package files such as DEB or RPM
 - credentials, API keys, tokens, cookies or private network data
 
-Release binaries, checksums and SBOM files belong on a versioned **GitHub Release** as release assets.
+Release binaries, archives, checksums, SBOM files and signature bundles belong on a
+versioned **GitHub Release** as release assets.
 
-## Release source of truth
+## Source of truth
 
-The private `Jojje84/UniCore` repository is the development source of truth.
+Each product has its own authoritative source repository. For the current products:
 
-Only verified release output produced by that repository's release pipeline should be published here.
+- UniCore source of truth: `Jojje84/UniCore`
+- ForgeCore source of truth: `Jojje84/ForgeCore`
 
-## Stable update feed
+This repository only receives verified release output and update metadata from those
+source repositories.
 
-`release-channel.json` is the stable machine-readable update feed used by UniCore and downstream distribution systems.
+## Release namespacing
 
-A release must not be added to the stable feed until its build, tests, checksums and publication have completed successfully.
+GitHub Release tags in this shared repository must include the product prefix:
+
+- `unicore-v<version>`
+- `forgecore-v<version>`
+
+This prevents collisions when two products use the same semantic version.
+
+## Stable update feeds
+
+Each product owns one stable feed:
+
+- `channels/unicore/stable.json`
+- `channels/forgecore/stable.json`
+
+Prereleases may exist as GitHub Releases but must not update a stable feed.
 
 ## Main branch policy
 
@@ -47,4 +66,5 @@ The `main` branch should be protected by a GitHub ruleset that:
 - blocks branch deletion
 - uses squash merges for normal maintenance changes
 
-Automated release publication may use a narrowly scoped credential or GitHub App with only the permissions required to publish release assets and update the release feed.
+Automated release publication may use narrowly scoped credentials with only the
+permissions required to publish release assets and update the relevant product feed.
