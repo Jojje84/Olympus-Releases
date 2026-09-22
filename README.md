@@ -1,79 +1,82 @@
-# UniCore Releases
+# Olympus Releases
 
-**Official public downloads and release information for UniCore.**
+**Official public release hub for Jojje84 applications distributed through Olympus.**
 
-[Live demo](https://jojje84.github.io/UniCore/) · [Raspberry Pi](docs/RASPBERRY_PI.md) · [Security](.github/SECURITY.md) · [Installation](docs/INSTALL.md) · [Verify downloads](docs/VERIFY.md) · [Binary license](docs/LICENSE.md)
+This repository is the shared public release and update channel for products whose
+source code is maintained in separate private repositories.
 
-UniCore is a lightweight, local-first UniFi monitoring dashboard written in Go.
+## Products
 
-This repository is the **public distribution channel** for UniCore. The application source code is maintained separately in a private development repository.
+- **UniCore** — UniFi monitoring dashboard
+- **ForgeCore** — self-hosted GitHub Actions runner platform for Umbrel
 
-## Current release status
+Additional products can be added without creating another public release repository.
 
-No public UniCore release has been published yet.
-
-The first production release will be published here after the current release candidate has completed real-controller, browser, migration, Docker and target-device validation.
-
-When releases begin, this repository will provide:
-
-- Separate Linux binaries for amd64, arm64 and armv7
-- SHA-256 checksums
-- Sigstore verification bundles for release payloads
-- CycloneDX SBOM files
-- versioned release notes
-- Docker/container distribution information
-- a machine-readable release channel used by UniCore and downstream app stores
-
-## Release files
-
-A release is expected to contain artifacts similar to:
+## Repository model
 
 ```text
-unicore_<version>_linux_amd64.tar.gz
-unicore_<version>_linux_arm64.tar.gz
-unicore_<version>_linux_armv7.tar.gz
-SHA256SUMS
-unicore_<version>_sbom.cdx.json
-<artifact>.sigstore.json
+Private source repositories
+├── Jojje84/UniCore
+├── Jojje84/ForgeCore
+└── future products
+        |
+        v
+verified release workflows
+        |
+        v
+Jojje84/Olympus-Releases
+├── release-index.json
+├── channels/
+│   ├── unicore/stable.json
+│   └── forgecore/stable.json
+└── GitHub Releases
+    ├── unicore-v...
+    └── forgecore-v...
+        |
+        v
+olympus-community-app-store
 ```
 
-Only files attached to releases in this repository should be treated as official public UniCore downloads. Official release payloads are designed to be verifiable with both SHA-256 checksums and Sigstore bundles.
+The private source repository for each product remains its source of truth.
+`olympus-community-app-store` is a downstream app-store/distribution layer.
 
-## Release channel
+## Release naming
 
-`release-channel.json` is the stable machine-readable update feed.
+Public GitHub Release tags are namespaced by product so different applications can
+use the same semantic version without collisions.
 
-Before the first public release its `latest` value is `null`. Once releases begin, the private UniCore build pipeline will update this file automatically after a release has passed verification and been published successfully.
+Examples:
 
-## License
+```text
+unicore-v1.0.0
+forgecore-v0.1.0-beta.20
+forgecore-v0.1.0
+```
 
-Official compiled UniCore releases are distributed under the [UniCore Binary License](docs/LICENSE.md). Downloading, installing, or using an official release is subject to those terms.
+## Stable channels
+
+`release-index.json` is the hub index.
+
+Each product has its own machine-readable stable feed:
+
+```text
+channels/unicore/stable.json
+channels/forgecore/stable.json
+```
+
+Prereleases can be published and fully verified without changing a stable feed.
+
+## UniCore compatibility
+
+The root `release-channel.json` is temporarily retained as the legacy UniCore
+stable feed while UniCore moves to `channels/unicore/stable.json`.
+
+UniCore-specific installation, verification and binary-license documents currently
+remain under `docs/` for backwards compatibility.
 
 ## Security
 
-Do not publish credentials, UniFi API keys, session cookies, customer data or private network information in public issues.
+Do not publish credentials, access tokens, private source code, customer data or
+machine secrets in this repository.
 
-See [the security policy](.github/SECURITY.md) for reporting guidance.
-
-## Source and distribution model
-
-UniCore uses a private-source/public-binary distribution model:
-
-```text
-Private UniCore source
-        |
-        v
-CI + security verification
-        |
-        v
-Signed/checksummed release artifacts
-        |
-        v
-UniCore-Releases
-        |
-        +--> Olympus Store
-        +--> direct downloads
-        +--> UniCore update checks
-```
-
-This repository is intentionally kept small. It is a distribution endpoint, not a second development repository.
+Only verified release artifacts should be attached to GitHub Releases.
