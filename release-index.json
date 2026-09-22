@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "hub": "Olympus-Releases",
+  "products": {
+    "unicore": {
+      "name": "UniCore",
+      "channel": "channels/unicore/stable.json",
+      "releases_prefix": "unicore-",
+      "source_repository": "Jojje84/UniCore"
+    },
+    "forgecore": {
+      "name": "ForgeCore",
+      "channel": "channels/forgecore/stable.json",
+      "releases_prefix": "forgecore-",
+      "source_repository": "Jojje84/ForgeCore"
+    }
+  }
+}
