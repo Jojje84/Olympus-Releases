@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "product": "ForgeCore",
+  "channel": "stable",
+  "status": "pre-release",
+  "latest": null,
+  "releases_url": "https://github.com/Jojje84/Olympus-Releases/releases"
+}
