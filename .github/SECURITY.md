@@ -1,22 +1,19 @@
 # Security Policy
 
-This repository is the public distribution channel for UniCore.
-
-## Supported versions
-
-Before the first production release, no public version is considered supported.
-
-After v1.0 is published, the latest stable release will be the supported release line unless a release notice states otherwise.
+This repository is the public release hub for multiple Olympus applications.
 
 ## Reporting a vulnerability
 
-Do **not** post exploit details, credentials, UniFi API keys, session cookies, private network information, database contents, or customer data in a public issue.
+Do **not** post exploit details, credentials, API keys, session cookies, private network
+information, database contents or customer data in a public issue.
 
-Use GitHub's private vulnerability reporting / security advisory flow when it is available for this repository. If a private reporting option is not available, open a public issue containing only a request for a private security contact channel and no technical exploit details.
+Use GitHub private vulnerability reporting / security advisories when available. If a
+private reporting option is unavailable, open a public issue containing only a request
+for a private security contact channel and no technical exploit details.
 
-Please include privately, when possible:
+Include privately, when possible:
 
-- affected UniCore version
+- affected product and version
 - installation method
 - affected endpoint or component
 - steps to reproduce
@@ -26,10 +23,13 @@ Please include privately, when possible:
 
 ## Official artifacts
 
-Only release files published through `Jojje84/UniCore-Releases` and container coordinates explicitly referenced by this repository should be treated as official UniCore distributions.
+Only release files published through `Jojje84/Olympus-Releases` and product-specific
+container coordinates referenced by an official release should be treated as official
+distribution artifacts.
 
-Verify downloaded artifacts using both the published `SHA256SUMS` and the matching Sigstore `.sigstore.json` bundle before installation. See `docs/VERIFY.md` for the expected signing identity and verification commands.
+Verify downloaded artifacts using the published SHA-256 checksums and matching Sigstore
+bundle before installation.
 
-## Internet-facing deployments
+## Product documentation
 
-Use HTTPS through a trusted reverse proxy, enable UniCore authentication, keep UniCore current, and prefer a UniFi API key over controller username/password authentication.
+Product-specific verification and license documents live under `docs/<product>/`.
